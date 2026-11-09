@@ -1,0 +1,6 @@
+{
+  "name": "PROJECT NEON CITY - Master Architect & 3D Prototype Engine",
+  "description": "Open-world 3D cyber-city action adventure prototype and Unity 6.3 LTS architecture station featuring FPS/TPS movement, Forza-inspired vehicle driving, Watch Dogs hacking, and complete technical blueprints.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
