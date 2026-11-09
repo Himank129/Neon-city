@@ -1,7 +1,7 @@
 /**
  * PROJECT NEON CITY - Three.js Game Engine & Render Pipeline
  * Implements software-WebGL guards, RoomEnvironment PBR pipeline, clamped dt,
- * Title Screen live flyover tour, and zero-GC particle systems.
+ * Title Screen live flyover tour, traffic system, pedestrian simulation, and particle systems.
  */
 
 import * as THREE from 'three';
@@ -9,6 +9,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CityBuilder } from './cityBuilder';
 import { VehicleController } from './vehiclePhysics';
 import { PlayerController } from './playerController';
+import { TrafficSystem } from './trafficSystem';
+import { PedestrianSystem } from './pedestrianSystem';
 import { input } from './input';
 import { sounds } from './audio';
 
@@ -37,6 +39,8 @@ export class GameEngine {
   public cityBuilder: CityBuilder;
   public vehicle: VehicleController;
   public player: PlayerController;
+  public trafficSystem: TrafficSystem;
+  public pedestrianSystem: PedestrianSystem;
 
   public state: EngineState = 'title';
   private isSoftwareGl = false;
@@ -88,16 +92,16 @@ export class GameEngine {
     // 3. Scene & Horizon Fog
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x060812);
-    this.scene.fog = new THREE.FogExp2(0x060812, 0.0075);
+    this.scene.fog = new THREE.FogExp2(0x060812, 0.0055);
 
     // 4. Camera
     this.camera = new THREE.PerspectiveCamera(
       70,
       mountElement.clientWidth / mountElement.clientHeight,
       0.1,
-      600
+      800
     );
-    this.camera.position.set(0, 18, 55);
+    this.camera.position.set(0, 22, 65);
 
     // 5. Procedural RoomEnvironment
     try {
@@ -122,10 +126,17 @@ export class GameEngine {
     // Spawn player near start crossroad
     this.player.position.set(0, 0, 5);
 
-    // 8. Ambient Particles
+    // 8. Traffic & Pedestrians (Living City)
+    this.trafficSystem = new TrafficSystem();
+    this.scene.add(this.trafficSystem.group);
+
+    this.pedestrianSystem = new PedestrianSystem();
+    this.scene.add(this.pedestrianSystem.group);
+
+    // 9. Atmospheric Particles
     this.setupParticles();
 
-    // 9. Input & Pointer Lock Setup
+    // 10. Input & Pointer Lock Setup
     input.setPointerLockTarget(this.renderer.domElement);
     this.renderer.domElement.addEventListener('click', () => {
       if (this.state === 'playing') {
@@ -133,7 +144,7 @@ export class GameEngine {
       }
     });
 
-    // 10. Handle Resizing
+    // 11. Handle Resizing
     window.addEventListener('resize', this.onResize);
 
     // Start Animation Loop
@@ -143,14 +154,14 @@ export class GameEngine {
   private setupLighting() {
     // Warm key directional light (Moonlight / High Neon glow)
     const keyLight = new THREE.DirectionalLight(0xa5c9ff, 1.4);
-    keyLight.position.set(80, 120, 60);
+    keyLight.position.set(100, 160, 80);
     if (!this.isSoftwareGl) {
       keyLight.castShadow = true;
       keyLight.shadow.mapSize.width = 1024;
       keyLight.shadow.mapSize.height = 1024;
       keyLight.shadow.camera.near = 10;
-      keyLight.shadow.camera.far = 300;
-      const d = 100;
+      keyLight.shadow.camera.far = 400;
+      const d = 140;
       keyLight.shadow.camera.left = -d;
       keyLight.shadow.camera.right = d;
       keyLight.shadow.camera.top = d;
@@ -160,18 +171,18 @@ export class GameEngine {
     this.scene.add(keyLight);
 
     // Cool Hemisphere Sky/Ground Fill (Cyberpunk violet/cyan tone)
-    const hemiLight = new THREE.HemisphereLight(0x00f0ff, 0x330044, 0.65);
+    const hemiLight = new THREE.HemisphereLight(0x00f0ff, 0x330044, 0.7);
     this.scene.add(hemiLight);
   }
 
   private setupParticles() {
     // Cyber rain / atmospheric dust motes
-    const count = 1200;
+    const count = 1600;
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 250;
-      pos[i * 3 + 1] = Math.random() * 60;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 250;
+      pos[i * 3] = (Math.random() - 0.5) * 400;
+      pos[i * 3 + 1] = Math.random() * 80;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 400;
     }
 
     this.particleGeo = new THREE.BufferGeometry();
@@ -181,7 +192,7 @@ export class GameEngine {
       color: 0x00f0ff,
       size: 0.35,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.55,
     });
 
     this.particlePoints = new THREE.Points(this.particleGeo, this.particleMat);
@@ -253,12 +264,12 @@ export class GameEngine {
       // Simulation Logic based on Game State
       if (this.state === 'title') {
         // Dramatic live panoramic orbit around Neon City skyline
-        this.titleTourAngle += dt * 0.18;
-        const radius = 65;
+        this.titleTourAngle += dt * 0.15;
+        const radius = 80;
         this.camera.position.x = Math.sin(this.titleTourAngle) * radius;
-        this.camera.position.z = Math.cos(this.titleTourAngle) * radius + 10;
-        this.camera.position.y = 16 + Math.sin(this.titleTourAngle * 0.5) * 4;
-        this.camera.lookAt(0, 8, 10);
+        this.camera.position.z = Math.cos(this.titleTourAngle) * radius + 15;
+        this.camera.position.y = 22 + Math.sin(this.titleTourAngle * 0.5) * 5;
+        this.camera.lookAt(0, 12, 15);
       } else if (this.state === 'playing') {
         // Active gameplay simulation
         this.player.update(
@@ -268,14 +279,18 @@ export class GameEngine {
           this.camera,
           this.cityBuilder.colliders
         );
+
+        // Update Living City (Traffic & Pedestrians)
+        this.trafficSystem.update(dt);
+        this.pedestrianSystem.update(dt);
       }
 
       // Animate Particles (rain drifting down)
       if (this.particleGeo) {
         const positions = this.particleGeo.attributes.position.array as Float32Array;
         for (let i = 1; i < positions.length; i += 3) {
-          positions[i] -= dt * 25;
-          if (positions[i] < 0) positions[i] = 60;
+          positions[i] -= dt * 28;
+          if (positions[i] < 0) positions[i] = 80;
         }
         this.particleGeo.attributes.position.needsUpdate = true;
       }
@@ -310,7 +325,7 @@ export class GameEngine {
                 type: this.player.targetedHackNode.type,
               }
             : null,
-          district: 'DISTRICT 01 // DOWNTOWN CORE',
+          district: 'DISTRICT 01 // DOWNTOWN METROPOLIS',
         });
       }
 

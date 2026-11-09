@@ -1,7 +1,7 @@
 /**
- * PROJECT NEON CITY - Forza Horizon-Inspired Vehicle Physics & 3D Model
- * Composite 8-part procedural sports car with drift mechanics, suspension squat,
- * dynamic spotlights, speedometer readouts, and enter/exit handling.
+ * PROJECT NEON CITY - Forza Horizon-Inspired Vehicle Physics & High-Fidelity 3D Model
+ * Upgraded 14-part procedural sports car with detailed cockpit interior, bucket seats,
+ * holographic dashboard, active aero wing, quad exhausts, brake calipers, and drift mechanics.
  */
 
 import * as THREE from 'three';
@@ -39,117 +39,232 @@ export class VehicleController {
     this.underglowMat = new THREE.MeshBasicMaterial({
       color: 0x00f0ff,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.85,
     });
     this.taillightMat = new THREE.MeshStandardMaterial({
       color: 0x330005,
       emissive: 0xff0033,
-      emissiveIntensity: 1.2,
-      roughness: 0.3,
-    });
-
-    this.buildCarModel();
-  }
-
-  private buildCarModel() {
-    // Part 1: Main Aerodynamic Cyber Chassis
-    const chassisGeo = new THREE.BoxGeometry(2.1, 0.65, 4.4);
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x0f1522,
-      metalness: 0.85,
+      emissiveIntensity: 1.4,
       roughness: 0.25,
     });
+
+    this.buildHighDetailCarModel();
+  }
+
+  private buildHighDetailCarModel() {
+    // Material definitions
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x0a101d,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+    const carbonMat = new THREE.MeshStandardMaterial({
+      color: 0x07090e,
+      roughness: 0.5,
+      metalness: 0.6,
+    });
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0x020509,
+      metalness: 0.95,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.85,
+    });
+    const interiorMat = new THREE.MeshStandardMaterial({
+      color: 0x151821,
+      roughness: 0.8,
+    });
+    const dashGlowMat = new THREE.MeshStandardMaterial({
+      color: 0x00f0ff,
+      emissive: 0x00f0ff,
+      emissiveIntensity: 2.2,
+    });
+    const caliperMat = new THREE.MeshStandardMaterial({
+      color: 0x00f0ff,
+      emissive: 0x00f0ff,
+      emissiveIntensity: 1.8,
+    });
+
+    // 1. Lower Chassis & Aerodynamic Floor Pan
+    const chassisGeo = new THREE.BoxGeometry(2.1, 0.45, 4.5);
     const chassis = new THREE.Mesh(chassisGeo, bodyMat);
-    chassis.position.y = 0.55;
+    chassis.position.y = 0.48;
     chassis.castShadow = true;
     this.mesh.add(chassis);
 
-    // Part 2: Glass Cockpit / Fastback Canopy
-    const cabinGeo = new THREE.BoxGeometry(1.65, 0.5, 2.2);
-    const glassMat = new THREE.MeshStandardMaterial({
-      color: 0x03060a,
-      metalness: 0.95,
-      roughness: 0.1,
+    // Flared Wheel Arches (Front & Rear)
+    [-1.08, 1.08].forEach((x) => {
+      const frontArch = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.48, 1.3), bodyMat);
+      frontArch.position.set(x, 0.55, 1.35);
+      frontArch.castShadow = true;
+      this.mesh.add(frontArch);
+
+      const rearArch = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.52, 1.4), bodyMat);
+      rearArch.position.set(x, 0.57, -1.35);
+      rearArch.castShadow = true;
+      this.mesh.add(rearArch);
     });
+
+    // 2. Sculpted Cabin Cockpit Canopy
+    const cabinGeo = new THREE.BoxGeometry(1.65, 0.48, 2.3);
     const cabin = new THREE.Mesh(cabinGeo, glassMat);
-    cabin.position.set(0, 1.0, -0.3);
+    cabin.position.set(0, 0.96, -0.25);
     cabin.castShadow = true;
     this.mesh.add(cabin);
 
-    // Part 3: Front Carbon Splitter & Grille
-    const splitterMat = new THREE.MeshStandardMaterial({ color: 0x0a0c10, roughness: 0.6 });
-    const splitter = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.15, 0.6), splitterMat);
-    splitter.position.set(0, 0.3, 2.2);
+    // Windshield Roof Rails / A-Pillars
+    [-0.8, 0.8].forEach((x) => {
+      const aPillar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.48, 2.32), carbonMat);
+      aPillar.position.set(x, 0.96, -0.25);
+      this.mesh.add(aPillar);
+    });
+
+    // 3. Interior Cockpit: Bucket Seats & Steering Wheel
+    // Dual Racing Seats
+    [-0.38, 0.38].forEach((sx) => {
+      const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.2, 0.55), interiorMat);
+      seatBase.position.set(sx, 0.6, -0.15);
+      this.mesh.add(seatBase);
+
+      const seatBack = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.55, 0.12), interiorMat);
+      seatBack.position.set(sx, 0.9, -0.42);
+      seatBack.rotation.x = -0.15;
+      this.mesh.add(seatBack);
+    });
+
+    // Dashboard & Glowing Holographic Gauge Cluster
+    const dash = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.25, 0.4), interiorMat);
+    dash.position.set(0, 0.85, 0.65);
+    this.mesh.add(dash);
+
+    const holoCluster = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 0.15), dashGlowMat);
+    holoCluster.position.set(-0.38, 0.96, 0.62);
+    holoCluster.rotation.x = -0.3;
+    this.mesh.add(holoCluster);
+
+    // Sports Steering Wheel
+    const wheelRing = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.02, 6, 12), carbonMat);
+    wheelRing.position.set(-0.38, 0.92, 0.45);
+    wheelRing.rotation.x = 0.35;
+    this.mesh.add(wheelRing);
+
+    // 4. Front Carbon Splitter & Air Intake Canards
+    const splitter = new THREE.Mesh(new THREE.BoxGeometry(2.18, 0.1, 0.7), carbonMat);
+    splitter.position.set(0, 0.26, 2.3);
+    splitter.castShadow = true;
     this.mesh.add(splitter);
 
-    // Part 4: High-Downforce Rear GT Wing
-    const wingMat = new THREE.MeshStandardMaterial({ color: 0x05070a, metalness: 0.7, roughness: 0.3 });
-    const wing = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.08, 0.45), wingMat);
-    wing.position.set(0, 1.35, -2.1);
+    // Aggressive Front Air Grille
+    const grille = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.22, 0.1), carbonMat);
+    grille.position.set(0, 0.45, 2.26);
+    this.mesh.add(grille);
+
+    // 5. High-Downforce Rear GT Wing with Dual Endplates
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.06, 0.48), carbonMat);
+    wing.position.set(0, 1.36, -2.15);
+    wing.castShadow = true;
     this.mesh.add(wing);
 
-    // Wing Struts
-    [-0.7, 0.7].forEach((x) => {
-      const strut = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.2), wingMat);
-      strut.position.set(x, 1.1, -2.1);
+    // Wing Endplates
+    [-1.17, 1.17].forEach((wx) => {
+      const endplate = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.3, 0.52), carbonMat);
+      endplate.position.set(wx, 1.36, -2.15);
+      this.mesh.add(endplate);
+    });
+
+    // Wing Swan-Neck Uprights
+    [-0.65, 0.65].forEach((sx) => {
+      const strut = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.22), carbonMat);
+      strut.position.set(sx, 1.1, -2.15);
       this.mesh.add(strut);
     });
 
-    // Part 5: Taillight Continuous Lightbar
-    const taillight = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.12, 0.1), this.taillightMat);
-    taillight.position.set(0, 0.75, -2.22);
+    // 6. Rear Diffuser & Quad Exhaust Tips
+    const diffuser = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.16, 0.5), carbonMat);
+    diffuser.position.set(0, 0.32, -2.25);
+    this.mesh.add(diffuser);
+
+    const exhaustGlowMat = new THREE.MeshStandardMaterial({
+      color: 0x3366ff,
+      emissive: 0x3366ff,
+      emissiveIntensity: 2.0,
+    });
+    [-0.6, -0.45, 0.45, 0.6].forEach((ex) => {
+      const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.25, 8), carbonMat);
+      tip.rotateX(Math.PI / 2);
+      tip.position.set(ex, 0.38, -2.32);
+      this.mesh.add(tip);
+
+      const glowCore = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 8), exhaustGlowMat);
+      glowCore.rotateX(Math.PI / 2);
+      glowCore.position.set(ex, 0.38, -2.42);
+      this.mesh.add(glowCore);
+    });
+
+    // 7. Continuous 3D Taillight Lightbar
+    const taillight = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.1, 0.08), this.taillightMat);
+    taillight.position.set(0, 0.76, -2.26);
     this.mesh.add(taillight);
 
-    // Part 6: Dual Headlights & Forward Spotlights
+    // 8. Front Headlights & Spotlights
     const headlightMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      emissive: 0x70eeff,
-      emissiveIntensity: 3.0,
+      emissive: 0x99f6ff,
+      emissiveIntensity: 3.5,
     });
-    [-0.75, 0.75].forEach((x) => {
-      const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.14, 0.1), headlightMat);
-      headMesh.position.set(x, 0.62, 2.22);
+    [-0.78, 0.78].forEach((x) => {
+      const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.12, 0.12), headlightMat);
+      headMesh.position.set(x, 0.62, 2.25);
       this.mesh.add(headMesh);
 
-      const spot = new THREE.SpotLight(0x99f6ff, 25, 45, Math.PI / 5, 0.3, 1.2);
-      spot.position.set(x, 0.65, 2.3);
+      // Real forward Spotlight
+      const spot = new THREE.SpotLight(0x99f6ff, 32, 55, Math.PI / 4.5, 0.35, 1.2);
+      spot.position.set(x, 0.65, 2.35);
       const spotTarget = new THREE.Object3D();
-      spotTarget.position.set(x, 0, 18);
+      spotTarget.position.set(x, 0, 24);
       this.mesh.add(spotTarget);
       spot.target = spotTarget;
       this.mesh.add(spot);
       this.headlights.push(spot);
     });
 
-    // Part 7: Cyber Underglow Neon Plane
-    const underglowGeo = new THREE.PlaneGeometry(2.2, 4.2);
+    // 9. Cyber Neon Underglow
+    const underglowGeo = new THREE.PlaneGeometry(2.2, 4.4);
     const underglow = new THREE.Mesh(underglowGeo, this.underglowMat);
     underglow.rotation.x = -Math.PI / 2;
     underglow.position.y = 0.08;
     this.mesh.add(underglow);
 
-    // Part 8: 4 Wheels with Alloy Rims
+    // 10. Four High-Detail Alloy Wheels with Calipers
     const wheelPositions = [
-      { x: -1.05, z: 1.35 }, // Front-Left
-      { x: 1.05, z: 1.35 },  // Front-Right
-      { x: -1.05, z: -1.35 }, // Rear-Left
-      { x: 1.05, z: -1.35 },  // Rear-Right
+      { x: -1.06, z: 1.35 }, // Front-Left
+      { x: 1.06, z: 1.35 },  // Front-Right
+      { x: -1.06, z: -1.35 }, // Rear-Left
+      { x: 1.06, z: -1.35 },  // Rear-Right
     ];
 
-    const tireGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.3, 16);
-    tireGeo.rotateZ(Math.PI / 2);
     const tireMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
-    const rimMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, metalness: 0.9, roughness: 0.2 });
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, metalness: 0.95, roughness: 0.15 });
 
     wheelPositions.forEach((pos) => {
       const wheelGroup = new THREE.Group();
+
+      // Tire Outer Ring
+      const tireGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.3, 16);
+      tireGeo.rotateZ(Math.PI / 2);
       const tire = new THREE.Mesh(tireGeo, tireMat);
       tire.castShadow = true;
       wheelGroup.add(tire);
 
-      const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.32, 8), rimMat);
+      // Deep Dish Rim
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.32, 10), rimMat);
       rim.rotateZ(Math.PI / 2);
       wheelGroup.add(rim);
+
+      // Glowing Cyan Brake Caliper
+      const caliper = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.14), caliperMat);
+      caliper.position.set(0, 0.18, 0);
+      wheelGroup.add(caliper);
 
       wheelGroup.position.set(pos.x, 0.38, pos.z);
       this.mesh.add(wheelGroup);
@@ -191,13 +306,13 @@ export class VehicleController {
     if (handbrake) {
       this.speed *= Math.max(0, 1.0 - dt * 1.8);
       this.driftAngle += this.steeringAngle * 3.5 * dt;
-      this.taillightMat.emissiveIntensity = 3.0;
+      this.taillightMat.emissiveIntensity = 3.2;
       if (Math.abs(this.speed) > 10) {
         sounds.playDriftScreech();
       }
     } else {
       this.driftAngle *= Math.max(0, 1.0 - dt * 5.0);
-      this.taillightMat.emissiveIntensity = brake > 0 ? 3.0 : 1.2;
+      this.taillightMat.emissiveIntensity = brake > 0 ? 3.2 : 1.4;
     }
 
     // Passive rolling friction
@@ -215,9 +330,9 @@ export class VehicleController {
     this.position.x += Math.sin(moveAngle) * this.speed * dt;
     this.position.z += Math.cos(moveAngle) * this.speed * dt;
 
-    // Boundary containment (Keep inside city grid)
-    this.position.x = Math.max(-280, Math.min(280, this.position.x));
-    this.position.z = Math.max(-280, Math.min(280, this.position.z));
+    // Boundary containment (Keep inside expanded city grid)
+    this.position.x = Math.max(-550, Math.min(550, this.position.x));
+    this.position.z = Math.max(-550, Math.min(550, this.position.z));
 
     // 6. Suspension Pitch & Roll Dynamics
     const targetPitch = (throttle - brake) * 0.06;
@@ -247,7 +362,7 @@ export class VehicleController {
   public toggleHeadlights(): boolean {
     this.headlightsOn = !this.headlightsOn;
     this.headlights.forEach((h) => (h.visible = this.headlightsOn));
-    this.underglowMat.opacity = this.headlightsOn ? 0.8 : 0.05;
+    this.underglowMat.opacity = this.headlightsOn ? 0.85 : 0.05;
     return this.headlightsOn;
   }
 
