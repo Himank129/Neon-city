@@ -1,7 +1,7 @@
 /**
- * PROJECT NEON CITY - High-Fidelity Procedural Texture & Material Generators
- * Generates realistic asphalt with road markings, paving slabs, illuminated building
- * facades with individualized window states, and commercial neon storefronts.
+ * PROJECT NEON CITY - Watch Dogs 2 California Architectural Texture Generator
+ * Procedural generation for realistic California asphalt, poured concrete sidewalks,
+ * red brick, sandstone, glass curtain walls, and lively commercial storefronts.
  */
 
 import * as THREE from 'three';
@@ -10,10 +10,11 @@ export class TextureGenerator {
   private static cachedTextures: Map<string, THREE.CanvasTexture> = new Map();
 
   /**
-   * High-Resolution Asphalt Texture with lane lines, road grit, oil sheens, and cracks
+   * Realistic California Asphalt Road Texture
+   * Matte aggregate asphalt with tar seam lines, clean lane stripes, and zebra crossings.
    */
   public static createAsphaltTexture(): THREE.CanvasTexture {
-    const key = 'asphalt_main';
+    const key = 'ca_asphalt_v2';
     if (this.cachedTextures.has(key)) return this.cachedTextures.get(key)!;
 
     const canvas = document.createElement('canvas');
@@ -21,66 +22,69 @@ export class TextureGenerator {
     canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
-    // 1. Dark wet asphalt base
-    ctx.fillStyle = '#0c0f14';
+    // 1. Natural grey asphalt base (not pitch black)
+    ctx.fillStyle = '#2b2e36';
     ctx.fillRect(0, 0, 1024, 1024);
 
-    // 2. Grain and asphalt gravel noise
-    for (let i = 0; i < 15000; i++) {
+    // 2. Concrete aggregate and fine gravel noise
+    for (let i = 0; i < 22000; i++) {
       const x = Math.random() * 1024;
       const y = Math.random() * 1024;
-      const shade = Math.floor(16 + Math.random() * 28);
-      ctx.fillStyle = `rgb(${shade}, ${shade + 2}, ${shade + 5})`;
-      ctx.fillRect(x, y, Math.random() > 0.8 ? 3 : 1.5, Math.random() > 0.8 ? 3 : 1.5);
+      const shade = Math.floor(40 + Math.random() * 32);
+      ctx.fillStyle = `rgb(${shade}, ${shade + 1}, ${shade + 3})`;
+      ctx.fillRect(x, y, Math.random() > 0.85 ? 2.5 : 1.2, Math.random() > 0.85 ? 2.5 : 1.2);
     }
 
-    // 3. Subtle wet tire track sheens (darker reflective bands)
-    const trackGrad1 = ctx.createLinearGradient(200, 0, 360, 0);
-    trackGrad1.addColorStop(0, 'rgba(8, 10, 14, 0.4)');
-    trackGrad1.addColorStop(0.5, 'rgba(5, 7, 10, 0.7)');
-    trackGrad1.addColorStop(1, 'rgba(8, 10, 14, 0.4)');
-    ctx.fillStyle = trackGrad1;
+    // 3. Subtle longitudinal traffic tire wear paths
+    const laneWear1 = ctx.createLinearGradient(200, 0, 360, 0);
+    laneWear1.addColorStop(0, 'rgba(32, 35, 42, 0.4)');
+    laneWear1.addColorStop(0.5, 'rgba(28, 30, 36, 0.6)');
+    laneWear1.addColorStop(1, 'rgba(32, 35, 42, 0.4)');
+    ctx.fillStyle = laneWear1;
     ctx.fillRect(200, 0, 160, 1024);
 
-    const trackGrad2 = ctx.createLinearGradient(664, 0, 824, 0);
-    trackGrad2.addColorStop(0, 'rgba(8, 10, 14, 0.4)');
-    trackGrad2.addColorStop(0.5, 'rgba(5, 7, 10, 0.7)');
-    trackGrad2.addColorStop(1, 'rgba(8, 10, 14, 0.4)');
-    ctx.fillStyle = trackGrad2;
+    const laneWear2 = ctx.createLinearGradient(664, 0, 824, 0);
+    laneWear2.addColorStop(0, 'rgba(32, 35, 42, 0.4)');
+    laneWear2.addColorStop(0.5, 'rgba(28, 30, 36, 0.6)');
+    laneWear2.addColorStop(1, 'rgba(32, 35, 42, 0.4)');
+    ctx.fillStyle = laneWear2;
     ctx.fillRect(664, 0, 160, 1024);
 
-    // 4. Yellow Center Median (Double dashed with reflector pips)
-    ctx.fillStyle = '#ffaa00';
-    for (let y = 30; y < 1024; y += 220) {
-      // Dual dashed yellow stripes
-      ctx.fillRect(504, y, 6, 130);
-      ctx.fillRect(514, y, 6, 130);
-      // Reflective cat-eye markers
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(509, y + 60, 2, 8);
-      ctx.fillStyle = '#ffaa00';
-    }
+    // 4. Double Yellow Median Line (California Highway Standard #ffb81c)
+    ctx.fillStyle = '#f5a623';
+    ctx.fillRect(505, 0, 6, 1024);
+    ctx.fillRect(515, 0, 6, 1024);
 
-    // 5. White Solid Edge Lines
-    ctx.fillStyle = '#e2e8f0';
-    ctx.fillRect(36, 0, 12, 1024);
-    ctx.fillRect(976, 0, 12, 1024);
-
-    // 6. Pedestrian Crosswalk Hatching near top
+    // 5. White Edge Lines
     ctx.fillStyle = '#f8fafc';
-    for (let x = 60; x < 964; x += 55) {
-      ctx.fillRect(x, 40, 32, 140);
+    ctx.fillRect(36, 0, 10, 1024);
+    ctx.fillRect(978, 0, 10, 1024);
+
+    // Green Painted Dedicated Bicycle Lane on right shoulder
+    ctx.fillStyle = 'rgba(46, 133, 64, 0.55)';
+    ctx.fillRect(860, 0, 100, 1024);
+    ctx.fillStyle = '#ffffff';
+    // Bicycle lane symbol dashes
+    for (let by = 100; by < 1024; by += 300) {
+      ctx.fillRect(900, by, 20, 45);
     }
 
-    // Stop Line
-    ctx.fillRect(40, 200, 944, 20);
+    // 6. Continental Pedestrian Crosswalk (Thick White Bars)
+    ctx.fillStyle = '#ffffff';
+    for (let x = 60; x < 964; x += 60) {
+      ctx.fillRect(x, 40, 36, 150);
+    }
 
-    // 7. Road Drain Grate (near edge)
-    ctx.fillStyle = '#05070a';
-    ctx.fillRect(52, 500, 30, 80);
-    ctx.fillStyle = '#1e2430';
-    for (let gy = 506; gy < 576; gy += 8) {
-      ctx.fillRect(54, gy, 26, 3);
+    // Solid Stop Line
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(40, 215, 944, 22);
+
+    // 7. Cast Iron Storm Drain Grate
+    ctx.fillStyle = '#1e2026';
+    ctx.fillRect(48, 520, 32, 80);
+    ctx.fillStyle = '#2f3440';
+    for (let gy = 526; gy < 594; gy += 8) {
+      ctx.fillRect(50, gy, 28, 3.5);
     }
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -92,10 +96,10 @@ export class TextureGenerator {
   }
 
   /**
-   * Sidewalk Concrete Paving Texture with expansion joints, tactile paving, and drain grates
+   * Poured Architectural Concrete Sidewalk
    */
   public static createSidewalkTexture(): THREE.CanvasTexture {
-    const key = 'sidewalk_main';
+    const key = 'ca_sidewalk_v2';
     if (this.cachedTextures.has(key)) return this.cachedTextures.get(key)!;
 
     const canvas = document.createElement('canvas');
@@ -103,21 +107,21 @@ export class TextureGenerator {
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
 
-    // Concrete base
-    ctx.fillStyle = '#181d26';
+    // Warm sun-bleached concrete
+    ctx.fillStyle = '#b8bec8';
     ctx.fillRect(0, 0, 512, 512);
 
-    // Concrete noise
-    for (let i = 0; i < 8000; i++) {
+    // Concrete fine aggregate
+    for (let i = 0; i < 9000; i++) {
       const x = Math.random() * 512;
       const y = Math.random() * 512;
-      const c = Math.floor(22 + Math.random() * 18);
-      ctx.fillStyle = `rgb(${c}, ${c + 2}, ${c + 4})`;
-      ctx.fillRect(x, y, 2, 2);
+      const c = Math.floor(165 + Math.random() * 30);
+      ctx.fillStyle = `rgb(${c}, ${c}, ${c - 2})`;
+      ctx.fillRect(x, y, 1.5, 1.5);
     }
 
-    // Modular Paver Grid Seams (128x128 tiles)
-    ctx.strokeStyle = '#0d1017';
+    // Saw-cut Expansion Joints (128px square pavers)
+    ctx.strokeStyle = '#8c94a2';
     ctx.lineWidth = 3;
     for (let i = 0; i <= 512; i += 128) {
       ctx.beginPath();
@@ -131,12 +135,14 @@ export class TextureGenerator {
       ctx.stroke();
     }
 
-    // Tactile warning bumps near curb edge
-    ctx.fillStyle = '#2a3242';
-    for (let bx = 16; bx < 512; bx += 24) {
-      for (let by = 16; by < 72; by += 24) {
+    // Yellow ADA Detectable Warning Tiles near curb
+    ctx.fillStyle = '#e5a110';
+    ctx.fillRect(0, 0, 512, 45);
+    ctx.fillStyle = '#c48508';
+    for (let bx = 12; bx < 512; bx += 20) {
+      for (let by = 10; by < 40; by += 15) {
         ctx.beginPath();
-        ctx.arc(bx, by, 4, 0, Math.PI * 2);
+        ctx.arc(bx, by, 3.5, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -150,12 +156,13 @@ export class TextureGenerator {
   }
 
   /**
-   * Architectural Building Facade with illuminated randomized office/residential window grids
+   * Watch Dogs 2 Realistic Architectural Building Facades
+   * Variants: Modern Glass & Steel, San Francisco Red Brick, Warm Sandstone, Precast Concrete.
    */
   public static createBuildingFacadeTexture(
-    theme: 'cyan' | 'magenta' | 'amber' | 'corporate' | 'emerald'
+    theme: 'brick' | 'glass' | 'sandstone' | 'concrete' | 'terracotta'
   ): THREE.CanvasTexture {
-    const key = `facade_${theme}`;
+    const key = `wd2_facade_${theme}`;
     if (this.cachedTextures.has(key)) return this.cachedTextures.get(key)!;
 
     const canvas = document.createElement('canvas');
@@ -163,81 +170,107 @@ export class TextureGenerator {
     canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
-    // Hull backdrop (brushed architectural metallic / dark composite)
-    const hullColors = {
-      cyan: '#0a0e17',
-      magenta: '#120b17',
-      amber: '#14100c',
-      corporate: '#0b101c',
-      emerald: '#081412',
+    // 1. Facade Base Wall Finish
+    const wallStyles = {
+      brick: { base: '#7c3a27', secondary: '#944430', joint: '#b8a698' },
+      glass: { base: '#1e2c3d', secondary: '#2a3d54', joint: '#111722' },
+      sandstone: { base: '#d8c4a0', secondary: '#c9b48e', joint: '#a89472' },
+      concrete: { base: '#9aa0aa', secondary: '#89909c', joint: '#68707c' },
+      terracotta: { base: '#a85838', secondary: '#b86642', joint: '#e0c8b2' },
     };
-    ctx.fillStyle = hullColors[theme];
+
+    const style = wallStyles[theme];
+    ctx.fillStyle = style.base;
     ctx.fillRect(0, 0, 512, 1024);
 
-    // Metallic panel seams
-    ctx.strokeStyle = '#04060a';
-    ctx.lineWidth = 2;
-    for (let y = 0; y < 1024; y += 64) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(512, y);
-      ctx.stroke();
-    }
-    for (let x = 0; x < 512; x += 64) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, 1024);
-      ctx.stroke();
+    // Brick pattern or panel joints
+    if (theme === 'brick') {
+      ctx.strokeStyle = style.joint;
+      ctx.lineWidth = 1.5;
+      for (let y = 0; y < 1024; y += 16) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(512, y);
+        ctx.stroke();
+
+        const offset = (y / 16) % 2 === 0 ? 0 : 16;
+        for (let x = offset; x < 512; x += 32) {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, y + 16);
+          ctx.stroke();
+        }
+      }
+    } else {
+      // Architectural precast panel seams
+      ctx.strokeStyle = style.joint;
+      ctx.lineWidth = 2.5;
+      for (let y = 0; y < 1024; y += 64) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(512, y);
+        ctx.stroke();
+      }
+      for (let x = 0; x < 512; x += 64) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 1024);
+        ctx.stroke();
+      }
     }
 
-    // Window Grids: 8 columns x 32 floors
+    // 2. Realistic Architectural Windows & Balconies
     const cols = 8;
-    const floors = 32;
-    const winWidth = 40;
-    const winHeight = 22;
+    const floors = 28;
+    const winWidth = 38;
+    const winHeight = 24;
     const colSpacing = 64;
-    const floorSpacing = 32;
-
-    const palette = {
-      cyan: ['#00f0ff', '#5ce1e6', '#ffffff', '#007799', '#ffaa00'],
-      magenta: ['#ff007f', '#ff55aa', '#ffffff', '#770044', '#00f0ff'],
-      amber: ['#ffaa00', '#ffd166', '#ffffff', '#995500', '#00f0ff'],
-      corporate: ['#a0c4ff', '#ffffff', '#7099cc', '#00f0ff', '#ffaa00'],
-      emerald: ['#00ff88', '#55ffaa', '#ffffff', '#008855', '#ffaa00'],
-    };
-
-    const colors = palette[theme];
+    const floorSpacing = 36;
 
     for (let f = 0; f < floors; f++) {
-      const y = f * floorSpacing + 5;
+      const y = f * floorSpacing + 8;
+
+      // Floor horizontal decorative cornice sill
+      ctx.fillStyle = style.joint;
+      ctx.fillRect(0, y + winHeight + 1, 512, 4);
+
       for (let c = 0; c < cols; c++) {
-        const x = c * colSpacing + 12;
+        const x = c * colSpacing + 13;
 
-        // 65% of windows are illuminated, 35% are dark/unlit
-        const isLit = Math.random() < 0.65;
-        if (isLit) {
-          const winColor = colors[Math.floor(Math.random() * colors.length)];
-          ctx.fillStyle = winColor;
+        // Window Frame (White or Dark Bronze)
+        ctx.fillStyle = theme === 'glass' ? '#182433' : '#ffffff';
+        ctx.fillRect(x - 2, y - 2, winWidth + 4, winHeight + 4);
+
+        // Glass pane (Reflective blue sky / interior shade)
+        if (theme === 'glass') {
+          // Reflective high-rise curtain glass
+          const grad = ctx.createLinearGradient(x, y, x, y + winHeight);
+          grad.addColorStop(0, '#5ca3e6');
+          grad.addColorStop(0.6, '#326bb3');
+          grad.addColorStop(1, '#1e4882');
+          ctx.fillStyle = grad;
           ctx.fillRect(x, y, winWidth, winHeight);
-
-          // Window frame mullion
-          ctx.strokeStyle = '#05070a';
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(x, y, winWidth, winHeight);
-
-          // Horizontal blind or interior partition line
-          if (Math.random() > 0.4) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.fillRect(x, y, winWidth, Math.random() * 10);
-          }
         } else {
-          // Dark glass reflecting sky
-          ctx.fillStyle = '#060a12';
+          // Residential / Commercial office windows with natural daylight reflection
+          const isWarmLit = Math.random() < 0.35;
+          if (isWarmLit) {
+            ctx.fillStyle = '#ffeed6'; // Warm interior lighting
+          } else {
+            ctx.fillStyle = '#263d58'; // Daytime sky reflection
+          }
           ctx.fillRect(x, y, winWidth, winHeight);
-          ctx.strokeStyle = '#040609';
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(x, y, winWidth, winHeight);
+
+          // Curtains / blinds variation
+          if (Math.random() > 0.4) {
+            ctx.fillStyle = '#e8ebf0';
+            ctx.fillRect(x, y, winWidth, Math.random() * 12);
+          }
         }
+
+        // Window glass mullion divider
+        ctx.strokeStyle = '#222933';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, winWidth, winHeight);
       }
     }
 
@@ -250,53 +283,51 @@ export class TextureGenerator {
   }
 
   /**
-   * Commercial Storefront Signboard Texture for ground-level retail
+   * California Commercial Storefront Awning & Fascia Signs
    */
   public static createStorefrontTexture(
     name: string,
     category: string,
-    neonColor: string
+    accentColor: string,
+    awningColor: string
   ): THREE.CanvasTexture {
-    const key = `store_${name}`;
+    const key = `ca_store_${name}`;
     if (this.cachedTextures.has(key)) return this.cachedTextures.get(key)!;
 
     const canvas = document.createElement('canvas');
     canvas.width = 512;
-    canvas.height = 160;
+    canvas.height = 200;
     const ctx = canvas.getContext('2d')!;
 
-    // Dark sleek fascia panel
-    ctx.fillStyle = '#070a10';
-    ctx.fillRect(0, 0, 512, 160);
-
-    // Glowing border frame
-    ctx.strokeStyle = neonColor;
-    ctx.lineWidth = 5;
-    ctx.strokeRect(6, 6, 500, 148);
-
-    // Background micro-grid
-    ctx.strokeStyle = '#0e1624';
-    ctx.lineWidth = 1.5;
-    for (let x = 0; x < 512; x += 24) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, 160);
-      ctx.stroke();
+    // 1. Striped Fabric Awning (Classic California retail)
+    const stripeWidth = 24;
+    for (let x = 0; x < 512; x += stripeWidth) {
+      ctx.fillStyle = (x / stripeWidth) % 2 === 0 ? awningColor : '#ffffff';
+      ctx.fillRect(x, 0, stripeWidth, 70);
     }
+    // Awning bottom shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.fillRect(0, 65, 512, 8);
 
-    // Glowing Neon Name
-    ctx.shadowColor = neonColor;
-    ctx.shadowBlur = 15;
+    // 2. Modern Architectural Signboard Panel
+    ctx.fillStyle = '#1f242d';
+    ctx.fillRect(0, 75, 512, 125);
+
+    // Gold / colored border frame
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(10, 82, 492, 110);
+
+    // Store Name
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 32px monospace';
+    ctx.font = 'bold 30px "Segoe UI", Arial, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(name, 256, 75);
+    ctx.fillText(name, 256, 128);
 
-    // Category Subtitle
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = neonColor;
-    ctx.font = 'bold 16px monospace';
-    ctx.fillText(category, 256, 120);
+    // Subtitle
+    ctx.fillStyle = accentColor;
+    ctx.font = 'bold 14px "Segoe UI", Arial, sans-serif';
+    ctx.fillText(category, 256, 165);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -305,10 +336,10 @@ export class TextureGenerator {
   }
 
   /**
-   * Plaza Concrete Tiles with embedded cyan cyber circuitry
+   * California Plaza Interlocking Paving Stones
    */
   public static createPlazaTexture(): THREE.CanvasTexture {
-    const key = 'plaza_tiles';
+    const key = 'ca_plaza_tiles_v2';
     if (this.cachedTextures.has(key)) return this.cachedTextures.get(key)!;
 
     const canvas = document.createElement('canvas');
@@ -316,12 +347,20 @@ export class TextureGenerator {
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
 
-    ctx.fillStyle = '#121620';
+    // Warm terracotta and grey pavers
+    ctx.fillStyle = '#c5a085';
     ctx.fillRect(0, 0, 512, 512);
 
-    // Hexagonal / grid paving
-    ctx.strokeStyle = '#080b12';
-    ctx.lineWidth = 3;
+    for (let i = 0; i < 10000; i++) {
+      const x = Math.random() * 512;
+      const y = Math.random() * 512;
+      ctx.fillStyle = Math.random() > 0.5 ? '#b89479' : '#d2ae94';
+      ctx.fillRect(x, y, 2, 2);
+    }
+
+    // Interlocking diamond / herringbone joints
+    ctx.strokeStyle = '#8a6e59';
+    ctx.lineWidth = 2.5;
     for (let x = 0; x <= 512; x += 64) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
@@ -334,14 +373,6 @@ export class TextureGenerator {
       ctx.lineTo(512, y);
       ctx.stroke();
     }
-
-    // Embedded neon circuit lines
-    ctx.strokeStyle = '#00f0ff';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = '#00f0ff';
-    ctx.shadowBlur = 6;
-    ctx.strokeRect(64, 64, 128, 128);
-    ctx.strokeRect(320, 320, 128, 128);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = THREE.RepeatWrapping;

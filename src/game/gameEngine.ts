@@ -1,7 +1,7 @@
 /**
  * PROJECT NEON CITY - Three.js Game Engine & Render Pipeline
- * Implements software-WebGL guards, RoomEnvironment PBR pipeline, clamped dt,
- * Title Screen live flyover tour, traffic system, pedestrian simulation, and particle systems.
+ * Dynamic Time-of-Day (California Day/Night Cycle), PBR materials, traffic,
+ * pedestrians, and seamless HUD synchronization.
  */
 
 import * as THREE from 'three';
@@ -11,6 +11,7 @@ import { VehicleController } from './vehiclePhysics';
 import { PlayerController } from './playerController';
 import { TrafficSystem } from './trafficSystem';
 import { PedestrianSystem } from './pedestrianSystem';
+import { TimeOfDayManager, DayNightState } from './timeOfDay';
 import { input } from './input';
 import { sounds } from './audio';
 
@@ -30,6 +31,9 @@ export interface GameHUDState {
   nearCar: boolean;
   targetedHackNode: { id: string; name: string; type: string } | null;
   district: string;
+  timeString: string;
+  timePhase: 'dawn' | 'day' | 'sunset' | 'night';
+  timeHours: number;
 }
 
 export class GameEngine {
@@ -41,6 +45,7 @@ export class GameEngine {
   public player: PlayerController;
   public trafficSystem: TrafficSystem;
   public pedestrianSystem: PedestrianSystem;
+  public timeOfDay: TimeOfDayManager;
 
   public state: EngineState = 'title';
   private isSoftwareGl = false;
@@ -51,14 +56,10 @@ export class GameEngine {
   // Title Camera Tour Variables
   private titleTourAngle = 0;
 
-  // Particle Buffer
-  private particleGeo: THREE.BufferGeometry | null = null;
-  private particleMat: THREE.PointsMaterial | null = null;
-  private particlePoints: THREE.Points | null = null;
-
   // React State Callback
   private onHUDUpdate: ((state: GameHUDState) => void) | null = null;
   private hudThrottleCounter = 0;
+  private latestDayNightState: DayNightState | null = null;
 
   constructor(mountElement: HTMLElement, onHUDUpdate: (state: GameHUDState) => void) {
     this.onHUDUpdate = onHUDUpdate;
@@ -82,24 +83,24 @@ export class GameEngine {
     });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.1;
     this.renderer.setPixelRatio(this.isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = !this.isSoftwareGl;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setSize(mountElement.clientWidth, mountElement.clientHeight);
     mountElement.appendChild(this.renderer.domElement);
 
-    // 3. Scene & Horizon Fog
+    // 3. Scene & Horizon Atmosphere
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x060812);
-    this.scene.fog = new THREE.FogExp2(0x060812, 0.0055);
+    this.scene.background = new THREE.Color(0x4da6ff); // Bright California sky
+    this.scene.fog = new THREE.FogExp2(0x72a4d4, 0.0035);
 
     // 4. Camera
     this.camera = new THREE.PerspectiveCamera(
       70,
       mountElement.clientWidth / mountElement.clientHeight,
       0.1,
-      800
+      850
     );
     this.camera.position.set(0, 22, 65);
 
@@ -110,8 +111,8 @@ export class GameEngine {
       pmremGenerator.dispose();
     } catch {}
 
-    // 6. Lighting Rig
-    this.setupLighting();
+    // 6. Time of Day Manager & Atmospheric Lighting
+    this.timeOfDay = new TimeOfDayManager(this.scene, this.isSoftwareGl);
 
     // 7. City, Vehicle & Player
     this.cityBuilder = new CityBuilder();
@@ -123,7 +124,7 @@ export class GameEngine {
     this.player = new PlayerController();
     this.scene.add(this.player.characterMesh);
 
-    // Spawn player near start crossroad
+    // Spawn player near central avenue
     this.player.position.set(0, 0, 5);
 
     // 8. Traffic & Pedestrians (Living City)
@@ -133,10 +134,7 @@ export class GameEngine {
     this.pedestrianSystem = new PedestrianSystem();
     this.scene.add(this.pedestrianSystem.group);
 
-    // 9. Atmospheric Particles
-    this.setupParticles();
-
-    // 10. Input & Pointer Lock Setup
+    // 9. Input & Pointer Lock Setup
     input.setPointerLockTarget(this.renderer.domElement);
     this.renderer.domElement.addEventListener('click', () => {
       if (this.state === 'playing') {
@@ -144,59 +142,11 @@ export class GameEngine {
       }
     });
 
-    // 11. Handle Resizing
+    // 10. Handle Resizing
     window.addEventListener('resize', this.onResize);
 
     // Start Animation Loop
     this.startLoop();
-  }
-
-  private setupLighting() {
-    // Warm key directional light (Moonlight / High Neon glow)
-    const keyLight = new THREE.DirectionalLight(0xa5c9ff, 1.4);
-    keyLight.position.set(100, 160, 80);
-    if (!this.isSoftwareGl) {
-      keyLight.castShadow = true;
-      keyLight.shadow.mapSize.width = 1024;
-      keyLight.shadow.mapSize.height = 1024;
-      keyLight.shadow.camera.near = 10;
-      keyLight.shadow.camera.far = 400;
-      const d = 140;
-      keyLight.shadow.camera.left = -d;
-      keyLight.shadow.camera.right = d;
-      keyLight.shadow.camera.top = d;
-      keyLight.shadow.camera.bottom = -d;
-      keyLight.shadow.bias = -0.0005;
-    }
-    this.scene.add(keyLight);
-
-    // Cool Hemisphere Sky/Ground Fill (Cyberpunk violet/cyan tone)
-    const hemiLight = new THREE.HemisphereLight(0x00f0ff, 0x330044, 0.7);
-    this.scene.add(hemiLight);
-  }
-
-  private setupParticles() {
-    // Cyber rain / atmospheric dust motes
-    const count = 1600;
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 400;
-      pos[i * 3 + 1] = Math.random() * 80;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 400;
-    }
-
-    this.particleGeo = new THREE.BufferGeometry();
-    this.particleGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-
-    this.particleMat = new THREE.PointsMaterial({
-      color: 0x00f0ff,
-      size: 0.35,
-      transparent: true,
-      opacity: 0.55,
-    });
-
-    this.particlePoints = new THREE.Points(this.particleGeo, this.particleMat);
-    this.scene.add(this.particlePoints);
   }
 
   public startGame() {
@@ -222,6 +172,11 @@ export class GameEngine {
     this.state = 'title';
     document.body.dataset.state = 'title';
     input.exitPointerLock();
+  }
+
+  public advanceTime() {
+    this.timeOfDay.advanceToNextPhase();
+    sounds.playUIClick();
   }
 
   private afterDraw(cb: () => void) {
@@ -261,10 +216,24 @@ export class GameEngine {
         sounds.toggleMute();
       }
 
+      // Handle Time of Day toggle ([T])
+      if (input.consume('keyt')) {
+        this.advanceTime();
+      }
+
+      // Update Dynamic Time of Day (Sun orbit, lighting, sky, fog)
+      this.latestDayNightState = this.timeOfDay.update(dt, this.scene);
+      const isNightTime = this.latestDayNightState.nightFactor > 0.45;
+
+      // Update Streetlights & Headlights based on Day/Night
+      for (const light of this.cityBuilder.streetLights) {
+        light.visible = isNightTime;
+      }
+
       // Simulation Logic based on Game State
       if (this.state === 'title') {
-        // Dramatic live panoramic orbit around Neon City skyline
-        this.titleTourAngle += dt * 0.15;
+        // Panoramic flyover tour across California downtown
+        this.titleTourAngle += dt * 0.12;
         const radius = 80;
         this.camera.position.x = Math.sin(this.titleTourAngle) * radius;
         this.camera.position.z = Math.cos(this.titleTourAngle) * radius + 15;
@@ -285,22 +254,12 @@ export class GameEngine {
         this.pedestrianSystem.update(dt);
       }
 
-      // Animate Particles (rain drifting down)
-      if (this.particleGeo) {
-        const positions = this.particleGeo.attributes.position.array as Float32Array;
-        for (let i = 1; i < positions.length; i += 3) {
-          positions[i] -= dt * 28;
-          if (positions[i] < 0) positions[i] = 80;
-        }
-        this.particleGeo.attributes.position.needsUpdate = true;
-      }
-
       // Render Scene
       this.renderer.render(this.scene, this.camera);
 
-      // Throttle React HUD updates to <= 10Hz to prevent React thrashing
+      // Throttle React HUD updates to <= 10Hz
       this.hudThrottleCounter++;
-      if (this.hudThrottleCounter % 6 === 0 && this.onHUDUpdate) {
+      if (this.hudThrottleCounter % 6 === 0 && this.onHUDUpdate && this.latestDayNightState) {
         const distToCar = this.player.position.distanceTo(this.vehicle.position);
         const nearCar = distToCar <= 3.8 && !this.player.isInCar;
         const speed = this.player.isInCar ? this.vehicle.getSpeedKmH() : 0;
@@ -325,7 +284,10 @@ export class GameEngine {
                 type: this.player.targetedHackNode.type,
               }
             : null,
-          district: 'DISTRICT 01 // DOWNTOWN METROPOLIS',
+          district: 'BAY DISTRICT // MISSION CORE',
+          timeString: this.latestDayNightState.timeString,
+          timePhase: this.latestDayNightState.phase,
+          timeHours: this.latestDayNightState.timeHours,
         });
       }
 

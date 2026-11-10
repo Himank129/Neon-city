@@ -1,197 +1,220 @@
 /**
- * PROJECT NEON CITY - Procedural Vegetation & Street Furniture
- * Multi-branched architectural cyber trees, planter boxes, urban benches,
- * and sidewalk amenities replacing primitive spheres.
+ * PROJECT NEON CITY - California Natural Vegetation & Urban Street Furniture
+ * Procedural California Coastal Oaks, Palm Trees, flower planter beds,
+ * outdoor cafe seating, and authentic urban streetscapes.
  */
 
 import * as THREE from 'three';
 
 export class VegetationManager {
-  private treeBarkMat: THREE.MeshStandardMaterial;
-  private cyanFoliageMat: THREE.MeshStandardMaterial;
-  private emeraldFoliageMat: THREE.MeshStandardMaterial;
-  private magentaFoliageMat: THREE.MeshStandardMaterial;
-  private planterMat: THREE.MeshStandardMaterial;
-  private planterCurbMat: THREE.MeshStandardMaterial;
-  private benchMat: THREE.MeshStandardMaterial;
+  private oakBarkMat: THREE.MeshStandardMaterial;
+  private palmTrunkMat: THREE.MeshStandardMaterial;
+  private oakLeavesMat: THREE.MeshStandardMaterial;
+  private palmFrondMat: THREE.MeshStandardMaterial;
+  private autumnLeavesMat: THREE.MeshStandardMaterial;
+  private planterConcreteMat: THREE.MeshStandardMaterial;
+  private soilMat: THREE.MeshStandardMaterial;
   private benchWoodMat: THREE.MeshStandardMaterial;
+  private benchSteelMat: THREE.MeshStandardMaterial;
 
   constructor() {
-    this.treeBarkMat = new THREE.MeshStandardMaterial({
-      color: 0x181a22,
+    // Natural wood bark
+    this.oakBarkMat = new THREE.MeshStandardMaterial({
+      color: 0x4a3b32,
+      roughness: 0.9,
+      metalness: 0.05,
+    });
+
+    this.palmTrunkMat = new THREE.MeshStandardMaterial({
+      color: 0x5c4d3c,
       roughness: 0.85,
-      metalness: 0.2,
+      metalness: 0.05,
     });
 
-    this.cyanFoliageMat = new THREE.MeshStandardMaterial({
-      color: 0x051b24,
-      emissive: 0x00e5ff,
-      emissiveIntensity: 0.85,
-      roughness: 0.35,
-      metalness: 0.1,
+    // Lush California green leaves (chlorophyll rich, non-emissive daylight)
+    this.oakLeavesMat = new THREE.MeshStandardMaterial({
+      color: 0x2e7535,
+      roughness: 0.65,
+      metalness: 0.05,
     });
 
-    this.emeraldFoliageMat = new THREE.MeshStandardMaterial({
-      color: 0x052014,
-      emissive: 0x00ff88,
-      emissiveIntensity: 0.75,
-      roughness: 0.35,
-      metalness: 0.1,
+    this.palmFrondMat = new THREE.MeshStandardMaterial({
+      color: 0x3b8c42,
+      roughness: 0.55,
+      metalness: 0.05,
+      side: THREE.DoubleSide,
     });
 
-    this.magentaFoliageMat = new THREE.MeshStandardMaterial({
-      color: 0x1f0717,
-      emissive: 0xff007f,
-      emissiveIntensity: 0.8,
-      roughness: 0.35,
-      metalness: 0.1,
-    });
-
-    this.planterMat = new THREE.MeshStandardMaterial({
-      color: 0x12151e,
+    this.autumnLeavesMat = new THREE.MeshStandardMaterial({
+      color: 0xc46227,
       roughness: 0.7,
-      metalness: 0.3,
+      metalness: 0.05,
     });
 
-    this.planterCurbMat = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
-      emissive: 0x00f0ff,
-      emissiveIntensity: 1.2,
+    this.planterConcreteMat = new THREE.MeshStandardMaterial({
+      color: 0x9ca3af,
+      roughness: 0.75,
+      metalness: 0.15,
     });
 
-    this.benchMat = new THREE.MeshStandardMaterial({
-      color: 0x1e2430,
-      metalness: 0.8,
-      roughness: 0.3,
+    this.soilMat = new THREE.MeshStandardMaterial({
+      color: 0x2d241e,
+      roughness: 0.95,
+      metalness: 0.05,
     });
 
     this.benchWoodMat = new THREE.MeshStandardMaterial({
-      color: 0x3d271d,
+      color: 0x824927,
       roughness: 0.7,
       metalness: 0.1,
+    });
+
+    this.benchSteelMat = new THREE.MeshStandardMaterial({
+      color: 0x242a35,
+      roughness: 0.35,
+      metalness: 0.85,
     });
   }
 
   /**
-   * Builds an intricate multi-part procedural cyber tree with trunk, 3 branches,
-   * 4 foliage clusters, and a curb-lit planter box.
+   * Builds a natural California Coastal Oak Tree
    */
-  public createCyberTree(x: number, z: number, theme: 'cyan' | 'emerald' | 'magenta' = 'cyan'): THREE.Group {
+  public createOakTree(x: number, z: number, isAutumn: boolean = false): THREE.Group {
     const treeGroup = new THREE.Group();
 
-    // 1. Planter Box Foundation (2.4m x 2.4m square with soil)
-    const planterBox = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.45, 2.4), this.planterMat);
-    planterBox.position.y = 0.225;
-    planterBox.castShadow = true;
-    planterBox.receiveShadow = true;
-    treeGroup.add(planterBox);
+    // 1. Concrete Planter Box & Dark Mulch (2.6m x 2.6m)
+    const planter = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.45, 2.6), this.planterConcreteMat);
+    planter.position.y = 0.225;
+    planter.castShadow = true;
+    planter.receiveShadow = true;
+    treeGroup.add(planter);
 
-    // Glowing Planter Rim Strip
-    const planterRim = new THREE.Mesh(new THREE.BoxGeometry(2.44, 0.08, 2.44), this.planterCurbMat);
-    planterRim.position.y = 0.45;
-    treeGroup.add(planterRim);
-
-    // Soil
-    const soilMat = new THREE.MeshStandardMaterial({ color: 0x0a0d0a, roughness: 0.95 });
-    const soil = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.1, 2.1), soilMat);
+    const soil = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.1, 2.3), this.soilMat);
     soil.position.y = 0.46;
     treeGroup.add(soil);
 
-    // 2. Sculpted Main Trunk
-    const trunkGeo = new THREE.CylinderGeometry(0.32, 0.48, 4.2, 8);
-    const trunk = new THREE.Mesh(trunkGeo, this.treeBarkMat);
-    trunk.position.y = 2.4;
+    // 2. Natural Trunk
+    const trunkGeo = new THREE.CylinderGeometry(0.38, 0.52, 4.2, 8);
+    const trunk = new THREE.Mesh(trunkGeo, this.oakBarkMat);
+    trunk.position.y = 2.35;
     trunk.castShadow = true;
     treeGroup.add(trunk);
 
-    // 3. Three Articulated Asymmetric Branches
-    const branchConfigs = [
-      { angle: 0, pitch: 0.45, length: 2.2, height: 3.6 },
-      { angle: (Math.PI * 2) / 3, pitch: 0.5, length: 2.0, height: 4.1 },
-      { angle: (Math.PI * 4) / 3, pitch: 0.4, length: 2.3, height: 3.8 },
+    // 3. Three Organic Branches
+    const leavesMat = isAutumn ? this.autumnLeavesMat : this.oakLeavesMat;
+    const branches = [
+      { angle: 0.3, pitch: 0.5, len: 2.4, y: 3.6 },
+      { angle: 2.2, pitch: 0.55, len: 2.2, y: 3.9 },
+      { angle: 4.3, pitch: 0.45, len: 2.5, y: 3.7 },
     ];
 
-    const foliageMat =
-      theme === 'emerald'
-        ? this.emeraldFoliageMat
-        : theme === 'magenta'
-        ? this.magentaFoliageMat
-        : this.cyanFoliageMat;
+    branches.forEach((b) => {
+      const bGeo = new THREE.CylinderGeometry(0.16, 0.25, b.len, 6);
+      const bMesh = new THREE.Mesh(bGeo, this.oakBarkMat);
+      bMesh.position.y = b.y;
+      bMesh.rotation.order = 'YXZ';
+      bMesh.rotation.y = b.angle;
+      bMesh.rotation.z = b.pitch;
+      bMesh.position.x = Math.sin(b.angle) * 0.7;
+      bMesh.position.z = Math.cos(b.angle) * 0.7;
+      bMesh.castShadow = true;
+      treeGroup.add(bMesh);
 
-    branchConfigs.forEach((cfg) => {
-      const branchGeo = new THREE.CylinderGeometry(0.14, 0.22, cfg.length, 6);
-      const branch = new THREE.Mesh(branchGeo, this.treeBarkMat);
-
-      branch.position.y = cfg.height;
-      branch.rotation.order = 'YXZ';
-      branch.rotation.y = cfg.angle;
-      branch.rotation.z = cfg.pitch;
-      branch.position.x = Math.sin(cfg.angle) * 0.6;
-      branch.position.z = Math.cos(cfg.angle) * 0.6;
-      branch.castShadow = true;
-      treeGroup.add(branch);
-
-      // Foliage Cluster at Branch Tip
-      const tipDist = cfg.length * 0.85;
-      const foliageGeo = new THREE.DodecahedronGeometry(1.2, 1);
-      const foliage = new THREE.Mesh(foliageGeo, foliageMat);
-      foliage.position.set(
-        Math.sin(cfg.angle) * (0.6 + tipDist * Math.sin(cfg.pitch)),
-        cfg.height + tipDist * Math.cos(cfg.pitch),
-        Math.cos(cfg.angle) * (0.6 + tipDist * Math.sin(cfg.pitch))
+      // Organic Foliage Canopy Cluster
+      const tipDist = b.len * 0.9;
+      const canopyGeo = new THREE.DodecahedronGeometry(1.5, 1);
+      const canopy = new THREE.Mesh(canopyGeo, leavesMat);
+      canopy.position.set(
+        Math.sin(b.angle) * (0.7 + tipDist * Math.sin(b.pitch)),
+        b.y + tipDist * Math.cos(b.pitch),
+        Math.cos(b.angle) * (0.7 + tipDist * Math.sin(b.pitch))
       );
-      foliage.castShadow = true;
-      treeGroup.add(foliage);
+      canopy.castShadow = true;
+      canopy.receiveShadow = true;
+      treeGroup.add(canopy);
     });
 
-    // 4. Central Top Foliage Crown
-    const crownGeo = new THREE.IcosahedronGeometry(1.6, 1);
-    const crown = new THREE.Mesh(crownGeo, foliageMat);
-    crown.position.y = 5.6;
-    crown.castShadow = true;
-    treeGroup.add(crown);
+    // Central Main Canopy
+    const topCanopy = new THREE.Mesh(new THREE.IcosahedronGeometry(2.0, 1), leavesMat);
+    topCanopy.position.y = 5.8;
+    topCanopy.castShadow = true;
+    treeGroup.add(topCanopy);
 
     treeGroup.position.set(x, 0, z);
     return treeGroup;
   }
 
   /**
-   * Modern Cyberpunk Sidewalk Bench with metallic frame and wooden slats
+   * Builds an iconic California Fan Palm Tree
+   */
+  public createPalmTree(x: number, z: number): THREE.Group {
+    const palmGroup = new THREE.Group();
+
+    // Circular Planter Curb
+    const planterGeo = new THREE.CylinderGeometry(1.4, 1.5, 0.4, 16);
+    const planter = new THREE.Mesh(planterGeo, this.planterConcreteMat);
+    planter.position.y = 0.2;
+    planter.receiveShadow = true;
+    palmGroup.add(planter);
+
+    const soil = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.25, 0.1, 16), this.soilMat);
+    soil.position.y = 0.42;
+    palmGroup.add(soil);
+
+    // Tall Curved Trunk (8.5m high)
+    const trunkGeo = new THREE.CylinderGeometry(0.22, 0.38, 8.5, 8);
+    const trunk = new THREE.Mesh(trunkGeo, this.palmTrunkMat);
+    trunk.position.set(0.15, 4.4, 0);
+    trunk.rotation.z = 0.04;
+    trunk.castShadow = true;
+    palmGroup.add(trunk);
+
+    // Palm Fronds Crown (8 radiating curved fan blades)
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const frondGeo = new THREE.BoxGeometry(0.5, 0.04, 3.2);
+      const frond = new THREE.Mesh(frondGeo, this.palmFrondMat);
+      frond.position.set(Math.sin(angle) * 1.5, 8.6, Math.cos(angle) * 1.5);
+      frond.rotation.y = angle;
+      frond.rotation.x = 0.45;
+      frond.castShadow = true;
+      palmGroup.add(frond);
+    }
+
+    palmGroup.position.set(x, 0, z);
+    return palmGroup;
+  }
+
+  /**
+   * Modern California City Bench with Teak Slats & Powder-Coated Steel Frame
    */
   public createBench(x: number, z: number, rotationY: number): THREE.Group {
     const benchGroup = new THREE.Group();
 
     // Steel Legs
     [-1.0, 1.0].forEach((lx) => {
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.6), this.benchMat);
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.6), this.benchSteelMat);
       leg.position.set(lx, 0.25, 0);
       leg.castShadow = true;
       benchGroup.add(leg);
 
-      const backSupport = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.08), this.benchMat);
-      backSupport.position.set(lx, 0.6, -0.26);
+      const backSupport = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.55, 0.08), this.benchSteelMat);
+      backSupport.position.set(lx, 0.62, -0.26);
       backSupport.castShadow = true;
       benchGroup.add(backSupport);
     });
 
-    // Seat Slats
-    const seatSlat = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 0.5), this.benchWoodMat);
-    seatSlat.position.set(0, 0.52, 0);
-    seatSlat.castShadow = true;
-    benchGroup.add(seatSlat);
+    // Teak Wood Seat Slats
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 0.55), this.benchWoodMat);
+    seat.position.set(0, 0.52, 0);
+    seat.castShadow = true;
+    benchGroup.add(seat);
 
     // Backrest Slat
-    const backSlat = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.3, 0.06), this.benchWoodMat);
-    backSlat.position.set(0, 0.75, -0.26);
-    backSlat.castShadow = true;
-    benchGroup.add(backSlat);
-
-    // Glowing Under-bench Neon Accent
-    const glowMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.6 });
-    const underGlow = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 0.4), glowMat);
-    underGlow.rotation.x = -Math.PI / 2;
-    underGlow.position.y = 0.05;
-    benchGroup.add(underGlow);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.32, 0.06), this.benchWoodMat);
+    back.position.set(0, 0.78, -0.26);
+    back.castShadow = true;
+    benchGroup.add(back);
 
     benchGroup.position.set(x, 0, z);
     benchGroup.rotation.y = rotationY;
@@ -199,30 +222,66 @@ export class VegetationManager {
   }
 
   /**
-   * Sidewalk Planter Bed with ground shrubs
+   * Sidewalk Planter Bed with Green Boxwood Shrubs & Flowers
    */
   public createPlanterBed(x: number, z: number, width: number, length: number): THREE.Group {
     const bedGroup = new THREE.Group();
 
-    const box = new THREE.Mesh(new THREE.BoxGeometry(width, 0.35, length), this.planterMat);
-    box.position.y = 0.175;
+    const box = new THREE.Mesh(new THREE.BoxGeometry(width, 0.4, length), this.planterConcreteMat);
+    box.position.y = 0.2;
     box.castShadow = true;
     bedGroup.add(box);
 
-    const rim = new THREE.Mesh(new THREE.BoxGeometry(width + 0.05, 0.06, length + 0.05), this.planterCurbMat);
-    rim.position.y = 0.35;
-    bedGroup.add(rim);
+    const soil = new THREE.Mesh(new THREE.BoxGeometry(width - 0.2, 0.1, length - 0.2), this.soilMat);
+    soil.position.y = 0.42;
+    bedGroup.add(soil);
 
-    // Shrub Spheres inside
-    const shrubCount = Math.max(2, Math.floor(length / 2));
-    const shrubGeo = new THREE.DodecahedronGeometry(0.45, 1);
-    for (let i = 0; i < shrubCount; i++) {
-      const shrub = new THREE.Mesh(shrubGeo, this.emeraldFoliageMat);
-      shrub.position.set(0, 0.48, -length / 2 + 1.0 + i * (length / shrubCount));
+    // Natural Boxwood Shrub Spheres
+    const count = Math.max(2, Math.floor(length / 2.2));
+    const shrubGeo = new THREE.DodecahedronGeometry(0.48, 1);
+    for (let i = 0; i < count; i++) {
+      const shrub = new THREE.Mesh(shrubGeo, this.oakLeavesMat);
+      shrub.position.set(0, 0.52, -length / 2 + 1.1 + i * (length / count));
+      shrub.castShadow = true;
       bedGroup.add(shrub);
     }
 
     bedGroup.position.set(x, 0, z);
     return bedGroup;
+  }
+
+  /**
+   * Outdoor Cafe Dining Table with Umbrella
+   */
+  public createCafeTable(x: number, z: number): THREE.Group {
+    const cafeGroup = new THREE.Group();
+
+    // Table Post & Base
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.05, 12), this.benchSteelMat);
+    base.position.y = 0.025;
+    cafeGroup.add(base);
+
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.8, 8), this.benchSteelMat);
+    post.position.y = 0.42;
+    cafeGroup.add(post);
+
+    const tabletop = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.05, 16), this.benchWoodMat);
+    tabletop.position.y = 0.82;
+    tabletop.castShadow = true;
+    cafeGroup.add(tabletop);
+
+    // Umbrella Canopy (Red or Navy)
+    const umbrellaPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6, 8), this.benchSteelMat);
+    umbrellaPole.position.y = 1.3;
+    cafeGroup.add(umbrellaPole);
+
+    const umbrellaMat = new THREE.MeshStandardMaterial({ color: 0xd93829, roughness: 0.6 });
+    const umbrellaCone = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.6, 8), umbrellaMat);
+    umbrellaCone.position.y = 2.4;
+    umbrellaCone.castShadow = true;
+    cafeGroup.add(umbrellaCone);
+
+    cafeGroup.position.set(x, 0, z);
+    return cafeGroup;
   }
 }

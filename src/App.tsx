@@ -30,7 +30,10 @@ export default function App() {
     headlightsOn: true,
     nearCar: false,
     targetedHackNode: null,
-    district: 'DISTRICT 01 // DOWNTOWN CORE',
+    district: 'BAY DISTRICT // MISSION CORE',
+    timeString: '14:00',
+    timePhase: 'day',
+    timeHours: 14.0,
   });
 
   const handleHUDUpdate = useCallback((newHUD: GameHUDState) => {
@@ -105,6 +108,7 @@ export default function App() {
             handlePause();
             setIsArchitectOpen(true);
           }}
+          onAdvanceTime={() => engineRef.current?.advanceTime()}
         />
       )}
 
